@@ -7,6 +7,28 @@ Two Dynatrace dashboards built on OneAgent network connection monitoring:
 | Oneagent_Network_Flow_Intelligence_v2.json | Network Flow Intelligence |
 | M365_Network_Experience.json | Microsoft 365 & Azure network experience |
 
+## What the dashboards look like
+
+### Network Flow Intelligence
+
+Overview, traffic volume, and top source and destination IPs:
+
+![Network Flow Intelligence: overview and traffic volume](flow_image1.png)
+
+Exposed services, outbound dependencies, and the host-to-destination dependency map:
+
+![Network Flow Intelligence: services and dependencies](flow_image2.png)
+
+Latency (RTT) and TCP reliability (retransmissions, resets, timeouts):
+
+![Network Flow Intelligence: latency and TCP reliability](flow_image3.png)
+
+### Microsoft 365 & Azure network experience
+
+Microsoft share of outbound traffic, RTT and retransmissions, and traffic by service:
+
+![Microsoft 365 and Azure network experience](flow_image4.png)
+
 ## Prerequisites
 
 - A Dynatrace tenant with the Dashboards app.
