@@ -1,0 +1,94 @@
+Analyze all Davis AI-detected problems and events from the last 30 days in my environment and produce a comprehensive Alert Noise Reduction Report. The goal is to identify patterns of noisy, redundant, low-value, or misconfigured alerts and provide actionable tuning recommendations. Include the following sections:
+
+─────────────────────────────────────────────
+1. ALERT VOLUME OVERVIEW (Last 30 Days)
+─────────────────────────────────────────────
+- Total number of problems generated in the last 30 days.
+- Break down by problem type (e.g., availability, performance, error rate, resource saturation, custom events).
+- Break down by severity (critical / high / medium / low).
+- Show a daily trend of problem volume to identify spike patterns or recurring peaks (e.g., same time daily, weekends, deployments).
+- Compare problem open vs. closed rate — what percentage auto-resolved vs. required manual action?
+
+─────────────────────────────────────────────
+2. FLAPPING & RECURRING ALERTS
+─────────────────────────────────────────────
+- Identify problems that opened and closed more than 3 times in 30 days on the same entity (flapping alerts).
+- List the top 20 most frequently recurring problems, ranked by occurrence count — include entity name, problem type, and average duration.
+- For each flapping alert, note whether the duration was under 5 minutes (transient noise) or persistent.
+- Flag any alerts that consistently open during specific time windows (e.g., batch jobs, deployments, nightly maintenance).
+
+─────────────────────────────────────────────
+3. SHORT-LIVED / LOW-VALUE ALERTS
+─────────────────────────────────────────────
+- List all problems that resolved in under 5 minutes across the 30-day period. These are strong candidates for threshold adjustment or alerting delay configuration.
+- Identify problem types where more than 50% of occurrences auto-closed without any human acknowledgment or workflow trigger.
+- Flag alerts that never had a workflow, notification, or incident ticket associated with them — these may be generating noise with zero operational value.
+
+─────────────────────────────────────────────
+4. TOP NOISY ENTITIES
+─────────────────────────────────────────────
+- Identify the top 10 entities (hosts, services, processes, synthetic monitors, Kubernetes workloads) that generated the highest volume of problems in the last 30 days.
+- For each entity, break down the problem types and assess whether the volume is expected (e.g., known unstable service) or anomalous.
+- Flag entities where more than 80% of their alerts auto-resolved without remediation action — strong signal for threshold tuning.
+
+─────────────────────────────────────────────
+5. DUPLICATE & CORRELATED ALERT ANALYSIS
+─────────────────────────────────────────────
+- Identify groups of problems that repeatedly trigger together (same timeframe, overlapping entities) but are not being merged into a single root cause problem by Davis AI.
+- Flag cases where multiple child events are generating separate notifications when they share the same root cause entity.
+- Identify custom alerts that overlap or duplicate built-in Davis AI anomaly detection for the same metric (e.g., a custom CPU threshold alert running alongside Davis CPU saturation detection).
+
+─────────────────────────────────────────────
+6. CUSTOM ALERT CONFIGURATION REVIEW
+─────────────────────────────────────────────
+- List all active custom anomaly detection rules (metric-based and DQL-based) and evaluate:
+  • Which ones fired the most in the last 30 days?
+  • Which ones never fired (potentially stale/unused rules)?
+  • Which ones have static thresholds that could be replaced with Davis AI dynamic baselining?
+  • Which ones lack a proper evaluation window (less than 5 minutes) causing noise from transient spikes?
+- Flag custom alerts with no associated workflow or notification channel (orphaned alerts).
+
+─────────────────────────────────────────────
+7. MAINTENANCE WINDOW & SUPPRESSION GAPS
+─────────────────────────────────────────────
+- Identify recurring alert patterns that align with known deployment windows, batch processing times, or scheduled jobs that lack a corresponding Maintenance Window configured in Dynatrace.
+- Flag any entities or host groups that had alert spikes during off-hours (weekends, nights) that could be suppressed with alerting profiles.
+- List any alerts generated during previously detected maintenance windows that were not suppressed — indicating Maintenance Window scope configuration gaps.
+
+─────────────────────────────────────────────
+8. ALERTING PROFILE & NOTIFICATION ANALYSIS
+─────────────────────────────────────────────
+- Review existing alerting profiles and identify:
+  • Profiles with no severity filter (sending all severities to the same channel — high noise risk).
+  • Profiles sending to deprecated or unmonitored notification channels (e.g., email groups that no longer exist).
+  • Profiles without entity tag filters — generating alerts for all entities including dev/test environments.
+- Identify if dev, test, staging, and production environments are sharing the same alerting profiles (cross-environment noise).
+
+─────────────────────────────────────────────
+9. SENSITIVITY & THRESHOLD TUNING RECOMMENDATIONS
+─────────────────────────────────────────────
+- For the top 10 noisiest metric-based alerts, recommend whether to:
+  • Increase the evaluation window (e.g., from 1 min to 5 min) to avoid transient spikes.
+  • Raise the static threshold based on observed p95 baseline values.
+  • Switch from static thresholds to Davis AI dynamic baselining.
+  • Add a minimum occurrence/duration filter before alerting.
+- For resource saturation alerts (CPU, memory, disk), compare the configured threshold against the actual observed p95 values over 30 days and recommend adjusted thresholds.
+
+─────────────────────────────────────────────
+10. RECOMMENDED ACTIONS & PRIORITY MATRIX
+─────────────────────────────────────────────
+Summarize all findings into a prioritized action list:
+
+| Priority | Recommendation | Estimated Alert Reduction | Effort |
+|----------|---------------|--------------------------|--------|
+| Critical | ...           | High                     | Low    |
+| High     | ...           | Medium                   | Medium |
+| Medium   | ...           | Low                      | Low    |
+
+Group recommendations into these categories:
+a) Quick wins — configuration changes that can reduce noise immediately (e.g., create Maintenance Windows, adjust evaluation windows).
+b) Threshold tuning — metric-specific threshold adjustments with suggested new values based on observed baselines.
+c) Architectural — structural changes (e.g., separate alerting profiles per environment, consolidate duplicate custom alerts).
+d) Decommission candidates — custom alerts or notification channels that should be retired entirely.
+
+Present all findings with severity rankings (Critical / Warning / Informational) and include the estimated impact on alert volume reduction for each recommendation.

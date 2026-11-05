@@ -1,0 +1,2711 @@
+{
+  "version": 21,
+  "variables": [
+    {
+      "defaultValue": [
+        "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+      ],
+      "editable": true,
+      "input": "fetch dt.davis.events\n| filter isNotNull(event.category)\n| dedup event.category\n| fields event.category\n| sort event.category asc",
+      "key": "Category",
+      "multiple": true,
+      "name": "Category",
+      "type": "query",
+      "version": 3,
+      "visible": true
+    },
+    {
+      "defaultValue": [
+        "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+      ],
+      "editable": true,
+      "input": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| fields layer\n| append [data record(layer = \"Other\")]\n| dedup layer\n| sort layer asc",
+      "key": "Layer",
+      "multiple": true,
+      "name": "Layer",
+      "type": "query",
+      "version": 3,
+      "visible": true
+    },
+    {
+      "defaultValue": [
+        "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+      ],
+      "editable": true,
+      "input": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| fields hostGroup\n| append [data record(hostGroup = \"(no host group)\")]\n| dedup hostGroup\n| sort hostGroup asc",
+      "key": "HostGroup",
+      "multiple": true,
+      "name": "HostGroup",
+      "type": "query",
+      "version": 3,
+      "visible": true
+    },
+    {
+      "defaultValue": [
+        "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+      ],
+      "editable": true,
+      "input": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| fields cloud\n| append [data record(cloud = \"ON-PREM / OTHER\")]\n| dedup cloud\n| sort cloud asc",
+      "key": "Cloud",
+      "multiple": true,
+      "name": "Cloud",
+      "type": "query",
+      "version": 3,
+      "visible": true
+    },
+    {
+      "defaultValue": [
+        "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+      ],
+      "editable": true,
+      "input": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| fields account\n| append [data record(account = \"(none)\")]\n| dedup account\n| sort account asc",
+      "key": "Account",
+      "multiple": true,
+      "name": "Account",
+      "type": "query",
+      "version": 3,
+      "visible": true
+    },
+    {
+      "defaultValue": "",
+      "editable": true,
+      "key": "Tag",
+      "name": "Tag",
+      "type": "text",
+      "version": 3,
+      "visible": true
+    },
+    {
+      "editable": true,
+      "input": "fetch dt.davis.events\n| expand t = entity_tags\n| filter indexOf(t, \":\") > 0\n| fieldsAdd tagKey = substring(t, to: indexOf(t, \":\"))\n| summarize n = count(), by:{tagKey}\n| sort n desc\n| fields tagKey\n| append [data record(tagKey = \"(none)\")]",
+      "key": "TagKey",
+      "multiple": false,
+      "name": "TagKey",
+      "type": "query",
+      "version": 3,
+      "visible": true
+    }
+  ],
+  "tiles": {
+    "1": {
+      "type": "markdown",
+      "content": "# 🚨 Event Management Overview\nEvery Davis event and problem in the timeframe, sliced by **category**, **layer** (from the source entity type), **host group**, **cloud**, **account** and **tag**. Problems are counted when at least one of their events matches the filters. Default timeframe: **last 7 days**.\n\n**First load:** choose **Select all** on *Category*, *Layer*, *HostGroup*, *Cloud* and *Account*. Leave *Tag* empty for everything; pick a *TagKey* to drive the two tag-value tiles."
+    },
+    "2": {
+      "type": "markdown",
+      "content": "### 🎨 Category colours\n<span style='color:#c62239'>■</span> **Availability** · <span style='color:#e8700f'>■</span> **Error** · <span style='color:#f5c400'>■</span> **Slowdown** · <span style='color:#a14fd4'>■</span> **Resource** · <span style='color:#d9a33a'>■</span> **Warning** · <span style='color:#1f9ad6'>■</span> **Custom alert** · <span style='color:#7b8494'>■</span> **Info** · <span style='color:#4a5160'>■</span> **Other**\n\nSame colour for a category on every tile. **Info** (deployments, config changes, process restarts) is grey because it's usually the bulk of the volume, not the signal — deselect it in *Category* to see the alerting picture."
+    },
+    "3": {
+      "type": "data",
+      "title": "Davis events",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| makeTimeseries Events = count(default:0), time:event.start\n| fieldsAdd Total = arraySum(Events)",
+      "visualization": "singleValue",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "singleValue": {
+          "labelMode": "none",
+          "recordField": "Total",
+          "colorThresholdTarget": "background",
+          "prefixIcon": "",
+          "trend": {
+            "isVisible": false
+          },
+          "sparklineSettings": {
+            "isVisible": true,
+            "record": "Events",
+            "variant": "area"
+          }
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "Total",
+            "unitCategory": "unspecified",
+            "baseUnit": "count",
+            "displayUnit": null,
+            "decimals": 0,
+            "suffix": "",
+            "delimiter": true,
+            "added": 1
+          }
+        ]
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Events matching the filters, with trend."
+    },
+    "4": {
+      "type": "data",
+      "title": "Active events",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| filter event.status == \"ACTIVE\"\n| summarize `Active events` = count()",
+      "visualization": "singleValue",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "singleValue": {
+          "labelMode": "none",
+          "recordField": "Active events",
+          "colorThresholdTarget": "background",
+          "prefixIcon": "",
+          "trend": {
+            "isVisible": false
+          },
+          "sparklineSettings": {
+            "isVisible": false
+          }
+        },
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "single-color",
+              "comparator": "<",
+              "field": "Active events",
+              "type": "double",
+              "value": 1,
+              "color": "var(--dt-colors-charts-apdex-excellent-default, #2a7453)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Active events",
+              "type": "double",
+              "value": 1,
+              "color": "var(--dt-colors-charts-status-warning-default, #eca440)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Active events",
+              "type": "double",
+              "value": 25,
+              "color": "var(--dt-colors-charts-status-critical-default, #c62239)"
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Events still open. Amber ≥ 1, red ≥ 25."
+    },
+    "5": {
+      "type": "data",
+      "title": "Problems",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| lookup [fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate)\n    | expand linkId = dt.davis.event_ids\n    | fields linkId, event.id, display_id, event.name, event.category, event.status, event.start, event.end,\n        resolved_problem_duration, root_cause_entity_name, affected_entity_ids, entity_tags, dt.davis.affected_users_count],\n    sourceField:event.id, lookupField:linkId, prefix:\"p.\"\n| filter isNotNull(p.event.id)\n| dedup p.event.id\n| filter in(p.event.category, array($Category))\n| fields event.id = p.event.id, display_id = p.display_id, event.name = p.event.name,\n    event.category = p.event.category, event.status = p.event.status,\n    event.start = p.event.start, event.end = p.event.end,\n    resolved_problem_duration = p.resolved_problem_duration,\n    root_cause_entity_name = p.root_cause_entity_name,\n    affected_entity_ids = p.affected_entity_ids, entity_tags = p.entity_tags,\n    affected_users = p.dt.davis.affected_users_count\n| makeTimeseries Problems = count(default:0), time:event.start\n| fieldsAdd Total = arraySum(Problems)",
+      "visualization": "singleValue",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "singleValue": {
+          "labelMode": "none",
+          "recordField": "Total",
+          "colorThresholdTarget": "background",
+          "prefixIcon": "",
+          "trend": {
+            "isVisible": false
+          },
+          "sparklineSettings": {
+            "isVisible": true,
+            "record": "Problems",
+            "variant": "area"
+          }
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "Total",
+            "unitCategory": "unspecified",
+            "baseUnit": "count",
+            "displayUnit": null,
+            "decimals": 0,
+            "suffix": "",
+            "delimiter": true,
+            "added": 1
+          }
+        ]
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Problems with at least one matching event, with trend."
+    },
+    "6": {
+      "type": "data",
+      "title": "Unlinked alerts",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| filter event.category != \"INFO\"\n| lookup [fetch dt.davis.problems | expand eid = dt.davis.event_ids | dedup eid | fields eid, display_id], sourceField:event.id, lookupField:eid, prefix:\"p.\"\n| summarize total = count(), unlinked = countIf(isNull(p.display_id))\n| fieldsAdd `Unlinked %` = round(100.0 * unlinked / total, decimals:1)\n| fields `Unlinked %`",
+      "visualization": "singleValue",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "singleValue": {
+          "labelMode": "none",
+          "recordField": "Unlinked %",
+          "colorThresholdTarget": "background",
+          "prefixIcon": "",
+          "trend": {
+            "isVisible": false
+          },
+          "sparklineSettings": {
+            "isVisible": false
+          }
+        },
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "single-color",
+              "comparator": "<",
+              "field": "Unlinked %",
+              "type": "double",
+              "value": 50,
+              "color": "var(--dt-colors-charts-apdex-excellent-default, #2a7453)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Unlinked %",
+              "type": "double",
+              "value": 50,
+              "color": "var(--dt-colors-charts-status-warning-default, #eca440)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Unlinked %",
+              "type": "double",
+              "value": 80,
+              "color": "var(--dt-colors-charts-status-critical-default, #c62239)"
+            }
+          ]
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "Unlinked %",
+            "unitCategory": "percentage",
+            "baseUnit": "percent",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1
+          }
+        ]
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "% of non-INFO events that never became part of a problem. Amber ≥ 50%, red ≥ 80%."
+    },
+    "7": {
+      "type": "data",
+      "title": "Frequent events",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| summarize `Frequent events` = countIf(dt.davis.is_frequent_event == true)",
+      "visualization": "singleValue",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "singleValue": {
+          "labelMode": "none",
+          "recordField": "Frequent events",
+          "colorThresholdTarget": "background",
+          "prefixIcon": "",
+          "trend": {
+            "isVisible": false
+          },
+          "sparklineSettings": {
+            "isVisible": false
+          }
+        },
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "single-color",
+              "comparator": "<",
+              "field": "Frequent events",
+              "type": "double",
+              "value": 1,
+              "color": "var(--dt-colors-charts-apdex-excellent-default, #2a7453)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Frequent events",
+              "type": "double",
+              "value": 1,
+              "color": "var(--dt-colors-charts-status-warning-default, #eca440)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Frequent events",
+              "type": "double",
+              "value": 100,
+              "color": "var(--dt-colors-charts-status-critical-default, #c62239)"
+            }
+          ]
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "Frequent events",
+            "unitCategory": "unspecified",
+            "baseUnit": "count",
+            "displayUnit": null,
+            "decimals": 0,
+            "suffix": "",
+            "delimiter": true,
+            "added": 1
+          }
+        ]
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Events Davis has flagged as frequent (flapping). Amber ≥ 1, red ≥ 100."
+    },
+    "8": {
+      "type": "data",
+      "title": "MTTR",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| lookup [fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate)\n    | expand linkId = dt.davis.event_ids\n    | fields linkId, event.id, display_id, event.name, event.category, event.status, event.start, event.end,\n        resolved_problem_duration, root_cause_entity_name, affected_entity_ids, entity_tags, dt.davis.affected_users_count],\n    sourceField:event.id, lookupField:linkId, prefix:\"p.\"\n| filter isNotNull(p.event.id)\n| dedup p.event.id\n| filter in(p.event.category, array($Category))\n| fields event.id = p.event.id, display_id = p.display_id, event.name = p.event.name,\n    event.category = p.event.category, event.status = p.event.status,\n    event.start = p.event.start, event.end = p.event.end,\n    resolved_problem_duration = p.resolved_problem_duration,\n    root_cause_entity_name = p.root_cause_entity_name,\n    affected_entity_ids = p.affected_entity_ids, entity_tags = p.entity_tags,\n    affected_users = p.dt.davis.affected_users_count\n| filter event.status == \"CLOSED\"\n| fieldsAdd ttr = coalesce(resolved_problem_duration, event.end - event.start)\n| summarize MTTR = avg(ttr)\n| fieldsAdd mttr_min = toDouble(MTTR) / 60000000000.0",
+      "visualization": "singleValue",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "singleValue": {
+          "labelMode": "none",
+          "recordField": "MTTR",
+          "colorThresholdTarget": "background",
+          "prefixIcon": "",
+          "trend": {
+            "isVisible": false
+          },
+          "sparklineSettings": {
+            "isVisible": false
+          }
+        },
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "single-color",
+              "comparator": "<",
+              "field": "mttr_min",
+              "type": "double",
+              "value": 30,
+              "color": "var(--dt-colors-charts-apdex-excellent-default, #2a7453)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "mttr_min",
+              "type": "double",
+              "value": 30,
+              "color": "var(--dt-colors-charts-status-warning-default, #eca440)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "mttr_min",
+              "type": "double",
+              "value": 120,
+              "color": "var(--dt-colors-charts-status-critical-default, #c62239)"
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Average duration of closed problems. Amber ≥ 30 min, red ≥ 2 h."
+    },
+    "9": {
+      "type": "markdown",
+      "content": "## 📈 Event trends"
+    },
+    "10": {
+      "type": "data",
+      "title": "Event trend by category",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| makeTimeseries {\n    Availability = countIf(event.category == \"AVAILABILITY\"),\n    Error = countIf(event.category == \"ERROR\"),\n    Slowdown = countIf(event.category == \"SLOWDOWN\"),\n    Resource = countIf(event.category == \"RESOURCE_CONTENTION\"),\n    Warning = countIf(event.category == \"WARNING\"),\n    `Custom alert` = countIf(event.category == \"CUSTOM_ALERT\"),\n    Info = countIf(event.category == \"INFO\"),\n    Other = countIf(not(in(event.category, array(\"AVAILABILITY\", \"ERROR\", \"SLOWDOWN\", \"RESOURCE_CONTENTION\", \"WARNING\", \"CUSTOM_ALERT\", \"INFO\"))))\n  }, time:event.start",
+      "visualization": "areaChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": false
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Availability"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#c62239"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Error"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#e8700f"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Slowdown"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#f5c400"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Resource"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#a14fd4"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Warning"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#d9a33a"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Custom alert"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#1f9ad6"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Info"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#7b8494"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Other"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#4a5160"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Stacked by category. Deselect INFO in Category to see the alerting events."
+    },
+    "11": {
+      "type": "data",
+      "title": "Events by category",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| summarize Events = count(), by:{Category = event.category}\n| sort Events desc",
+      "visualization": "donutChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "right"
+          },
+          "circleChartSettings": {
+            "valueType": "relative",
+            "showTotalValue": true
+          }
+        },
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#c62239"
+              },
+              "field": "Category",
+              "value": "AVAILABILITY",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#e8700f"
+              },
+              "field": "Category",
+              "value": "ERROR",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#f5c400"
+              },
+              "field": "Category",
+              "value": "SLOWDOWN",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#a14fd4"
+              },
+              "field": "Category",
+              "value": "RESOURCE_CONTENTION",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#d9a33a"
+              },
+              "field": "Category",
+              "value": "WARNING",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#1f9ad6"
+              },
+              "field": "Category",
+              "value": "CUSTOM_ALERT",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#7b8494"
+              },
+              "field": "Category",
+              "value": "INFO",
+              "comparator": "=",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      }
+    },
+    "12": {
+      "type": "data",
+      "title": "Top 10 event types",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| summarize Events = count(), by:{`Event type` = event.name}\n| sort Events desc\n| limit 10",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": true
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Events"
+              ],
+              "override": {
+                "color": {
+                  "Default": "var(--dt-colors-charts-categorical-color-01-default, #134fc9)"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      }
+    },
+    "13": {
+      "type": "data",
+      "title": "Top 10 sources",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| summarize Events = count(), by:{Source = event.provider}\n| sort Events desc\n| limit 10",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": true
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Events"
+              ],
+              "override": {
+                "color": {
+                  "Default": "var(--dt-colors-charts-categorical-color-01-default, #134fc9)"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Based on event.provider."
+    },
+    "14": {
+      "type": "data",
+      "title": "Alert activity by time (UTC)",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| filter event.category != \"INFO\"\n| fieldsAdd Hour = formatTimestamp(event.start, format:\"HH\"),\n    Day = concat(toString(getDayOfWeek(event.start)), \" \", formatTimestamp(event.start, format:\"EEE\"))\n| summarize Events = count(), by:{Hour, Day}",
+      "visualization": "heatmap",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Non-INFO events by hour and day. Hot rows / columns point to batch windows or change slots."
+    },
+    "15": {
+      "type": "markdown",
+      "content": "## 🧱 Events by layer"
+    },
+    "16": {
+      "type": "data",
+      "title": "Events by layer and category",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| summarize Total = count(),\n    Availability = countIf(event.category == \"AVAILABILITY\"),\n    Error = countIf(event.category == \"ERROR\"),\n    Slowdown = countIf(event.category == \"SLOWDOWN\"),\n    Resource = countIf(event.category == \"RESOURCE_CONTENTION\"),\n    Warning = countIf(event.category == \"WARNING\"),\n    `Custom alert` = countIf(event.category == \"CUSTOM_ALERT\"),\n    Info = countIf(event.category == \"INFO\"),\n    Other = countIf(not(in(event.category, array(\"AVAILABILITY\", \"ERROR\", \"SLOWDOWN\", \"RESOURCE_CONTENTION\", \"WARNING\", \"CUSTOM_ALERT\", \"INFO\")))),\n    by:{Layer = layer}\n| sort Total desc\n| limit 15\n| fieldsRemove Total",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": false
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Availability"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#c62239"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Error"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#e8700f"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Slowdown"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#f5c400"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Resource"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#a14fd4"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Warning"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#d9a33a"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Custom alert"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#1f9ad6"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Info"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#7b8494"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Other"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#4a5160"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Layer comes from the source entity type."
+    },
+    "17": {
+      "type": "data",
+      "title": "Layer trends",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| makeTimeseries Events = count(), by:{layer}, time:event.start",
+      "visualization": "areaChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": false
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          }
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      }
+    },
+    "18": {
+      "type": "data",
+      "title": "Frontend events",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| filter layer == \"Frontend (RUM)\"\n| fieldsAdd App = coalesce(getNodeName(dt.smartscape_source.id), dt.source_entity)\n| summarize Events = count(), Active = countIf(event.status == \"ACTIVE\"), `Last seen` = max(event.start),\n    by:{Frontend = App, Event = event.name}\n| sort Events desc\n| limit 25",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": true,
+          "columnTypeOverrides": [
+            {
+              "disableRemoval": false,
+              "fields": [
+                "Events"
+              ],
+              "id": 1,
+              "value": "meterbar"
+            }
+          ],
+          "lineWrapIds": [
+            [
+              "Event"
+            ]
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Web, mobile and custom app events."
+    },
+    "19": {
+      "type": "data",
+      "title": "Synthetic events",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| filter layer == \"Synthetic\"\n| fieldsAdd Monitor = coalesce(getNodeName(dt.smartscape_source.id), dt.source_entity),\n    Location = coalesce(getNodeName(dt.smartscape.synthetic_location), dt.entity.synthetic_location)\n| summarize Events = count(), Active = countIf(event.status == \"ACTIVE\"),\n    Locations = collectDistinct(Location), `Last seen` = max(event.start),\n    by:{Monitor, Event = event.name}\n| sort Events desc\n| limit 25",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": true,
+          "columnTypeOverrides": [
+            {
+              "disableRemoval": false,
+              "fields": [
+                "Events"
+              ],
+              "id": 1,
+              "value": "meterbar"
+            }
+          ],
+          "lineWrapIds": [
+            [
+              "Event"
+            ]
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Browser, HTTP and network monitors."
+    },
+    "20": {
+      "type": "data",
+      "title": "User impact",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| lookup [fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate)\n    | expand linkId = dt.davis.event_ids\n    | fields linkId, event.id, display_id, event.name, event.category, event.status, event.start, event.end,\n        resolved_problem_duration, root_cause_entity_name, affected_entity_ids, entity_tags, dt.davis.affected_users_count],\n    sourceField:event.id, lookupField:linkId, prefix:\"p.\"\n| filter isNotNull(p.event.id)\n| dedup p.event.id\n| filter in(p.event.category, array($Category))\n| fields event.id = p.event.id, display_id = p.display_id, event.name = p.event.name,\n    event.category = p.event.category, event.status = p.event.status,\n    event.start = p.event.start, event.end = p.event.end,\n    resolved_problem_duration = p.resolved_problem_duration,\n    root_cause_entity_name = p.root_cause_entity_name,\n    affected_entity_ids = p.affected_entity_ids, entity_tags = p.entity_tags,\n    affected_users = p.dt.davis.affected_users_count\n| filter affected_users > 0\n| fields Problem = display_id, Title = event.name, Category = event.category, Status = event.status,\n    `Affected users` = affected_users, `Root cause` = root_cause_entity_name, Started = event.start\n| sort `Affected users` desc\n| limit 25",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": true,
+          "columnTypeOverrides": [
+            {
+              "disableRemoval": false,
+              "fields": [
+                "Affected users"
+              ],
+              "id": 1,
+              "value": "meterbar"
+            }
+          ],
+          "lineWrapIds": [
+            [
+              "Title"
+            ]
+          ]
+        },
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#c62239"
+              },
+              "field": "Category",
+              "value": "AVAILABILITY",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#e8700f"
+              },
+              "field": "Category",
+              "value": "ERROR",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#f5c400"
+              },
+              "field": "Category",
+              "value": "SLOWDOWN",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#a14fd4"
+              },
+              "field": "Category",
+              "value": "RESOURCE_CONTENTION",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#d9a33a"
+              },
+              "field": "Category",
+              "value": "WARNING",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#1f9ad6"
+              },
+              "field": "Category",
+              "value": "CUSTOM_ALERT",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#7b8494"
+              },
+              "field": "Category",
+              "value": "INFO",
+              "comparator": "=",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Problems with affected real users."
+    },
+    "21": {
+      "type": "markdown",
+      "content": "## 🏷️ Events by tag"
+    },
+    "22": {
+      "type": "data",
+      "title": "Events by tag value",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| expand t = entity_tags\n| filter indexOf(t, \":\") > 0\n| filter substring(t, to: indexOf(t, \":\")) == $TagKey\n| fieldsAdd tagValue = substring(t, from: indexOf(t, \":\") + 1)\n| summarize Total = count(),\n    Availability = countIf(event.category == \"AVAILABILITY\"),\n    Error = countIf(event.category == \"ERROR\"),\n    Slowdown = countIf(event.category == \"SLOWDOWN\"),\n    Resource = countIf(event.category == \"RESOURCE_CONTENTION\"),\n    Warning = countIf(event.category == \"WARNING\"),\n    `Custom alert` = countIf(event.category == \"CUSTOM_ALERT\"),\n    Info = countIf(event.category == \"INFO\"),\n    Other = countIf(not(in(event.category, array(\"AVAILABILITY\", \"ERROR\", \"SLOWDOWN\", \"RESOURCE_CONTENTION\", \"WARNING\", \"CUSTOM_ALERT\", \"INFO\")))),\n    by:{`Tag value` = tagValue}\n| sort Total desc\n| limit 15\n| fieldsRemove Total",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": false
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Availability"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#c62239"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Error"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#e8700f"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Slowdown"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#f5c400"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Resource"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#a14fd4"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Warning"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#d9a33a"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Custom alert"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#1f9ad6"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Info"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#7b8494"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Other"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#4a5160"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Values of the selected TagKey."
+    },
+    "23": {
+      "type": "data",
+      "title": "Problems by tag value",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| lookup [fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate)\n    | expand linkId = dt.davis.event_ids\n    | fields linkId, event.id, display_id, event.name, event.category, event.status, event.start, event.end,\n        resolved_problem_duration, root_cause_entity_name, affected_entity_ids, entity_tags, dt.davis.affected_users_count],\n    sourceField:event.id, lookupField:linkId, prefix:\"p.\"\n| filter isNotNull(p.event.id)\n| dedup p.event.id\n| filter in(p.event.category, array($Category))\n| fields event.id = p.event.id, display_id = p.display_id, event.name = p.event.name,\n    event.category = p.event.category, event.status = p.event.status,\n    event.start = p.event.start, event.end = p.event.end,\n    resolved_problem_duration = p.resolved_problem_duration,\n    root_cause_entity_name = p.root_cause_entity_name,\n    affected_entity_ids = p.affected_entity_ids, entity_tags = p.entity_tags,\n    affected_users = p.dt.davis.affected_users_count\n| expand t = entity_tags\n| filter indexOf(t, \":\") > 0\n| filter substring(t, to: indexOf(t, \":\")) == $TagKey\n| fieldsAdd tagValue = substring(t, from: indexOf(t, \":\") + 1)\n| fieldsAdd ttr = coalesce(resolved_problem_duration, coalesce(event.end, now()) - event.start)\n| summarize Problems = countDistinct(event.id), Open = countIf(event.status == \"ACTIVE\"),\n    `Avg duration` = avg(ttr), `Affected users` = sum(affected_users),\n    by:{`Tag value` = tagValue}\n| sort Problems desc\n| limit 20",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": false,
+          "columnTypeOverrides": [
+            {
+              "disableRemoval": false,
+              "fields": [
+                "Problems"
+              ],
+              "id": 1,
+              "value": "meterbar"
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Values of the selected TagKey."
+    },
+    "24": {
+      "type": "markdown",
+      "content": "## 🖥️ Host groups & cloud"
+    },
+    "25": {
+      "type": "data",
+      "title": "Events by host group",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| summarize Total = count(),\n    Availability = countIf(event.category == \"AVAILABILITY\"),\n    Error = countIf(event.category == \"ERROR\"),\n    Slowdown = countIf(event.category == \"SLOWDOWN\"),\n    Resource = countIf(event.category == \"RESOURCE_CONTENTION\"),\n    Warning = countIf(event.category == \"WARNING\"),\n    `Custom alert` = countIf(event.category == \"CUSTOM_ALERT\"),\n    Info = countIf(event.category == \"INFO\"),\n    Other = countIf(not(in(event.category, array(\"AVAILABILITY\", \"ERROR\", \"SLOWDOWN\", \"RESOURCE_CONTENTION\", \"WARNING\", \"CUSTOM_ALERT\", \"INFO\")))),\n    by:{`Host group` = hostGroup}\n| sort Total desc\n| limit 10\n| fieldsRemove Total",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": false
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Availability"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#c62239"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Error"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#e8700f"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Slowdown"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#f5c400"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Resource"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#a14fd4"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Warning"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#d9a33a"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Custom alert"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#1f9ad6"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Info"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#7b8494"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Other"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#4a5160"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Top 10 host groups, split by category."
+    },
+    "26": {
+      "type": "data",
+      "title": "Events by cloud",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| summarize Events = count(), by:{Cloud = cloud}\n| sort Events desc",
+      "visualization": "donutChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom"
+          },
+          "circleChartSettings": {
+            "valueType": "relative",
+            "showTotalValue": true
+          }
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Events not tied to a cloud host show as ON-PREM / OTHER."
+    },
+    "27": {
+      "type": "data",
+      "title": "Events by account",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| summarize Events = count(), by:{`Account / subscription` = account}\n| sort Events desc\n| limit 10",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": true
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Events"
+              ],
+              "override": {
+                "color": {
+                  "Default": "var(--dt-colors-charts-categorical-color-01-default, #134fc9)"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "AWS account, Azure subscription or GCP project."
+    },
+    "28": {
+      "type": "data",
+      "title": "Host group summary",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| summarize Events = count(),\n    Active = countIf(event.status == \"ACTIVE\"),\n    Alerting = countIf(event.category != \"INFO\"),\n    `Frequent / flapping` = countIf(dt.davis.is_frequent_event == true),\n    `Under maintenance` = countIf(maintenance.is_under_maintenance == true),\n    `Distinct entities` = countDistinct(dt.source_entity),\n    `Last event` = max(event.start),\n    by:{`Host group` = hostGroup, Cloud = cloud}\n| fieldsAdd `Alerting %` = round(100.0 * Alerting / Events, decimals:1)\n| sort Events desc",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": false,
+          "columnTypeOverrides": [
+            {
+              "disableRemoval": false,
+              "fields": [
+                "Events",
+                "Alerting %"
+              ],
+              "id": 1,
+              "value": "meterbar"
+            }
+          ]
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "Alerting %",
+            "unitCategory": "percentage",
+            "baseUnit": "percent",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1
+          }
+        ]
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Alerting % = non-INFO share of the group's events."
+    },
+    "29": {
+      "type": "markdown",
+      "content": "## 🔕 Alert noise"
+    },
+    "30": {
+      "type": "data",
+      "title": "Repeat alerts",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| filter event.category != \"INFO\"\n| summarize Occurrences = count(),\n    `Flagged frequent` = countIf(dt.davis.is_frequent_event == true),\n    `First seen` = min(event.start),\n    `Last seen` = max(event.start),\n    by:{Event = event.name, dt.smartscape_source.id, dt.source_entity, Layer = layer, `Host group` = hostGroup}\n| filter Occurrences >= 3\n| sort Occurrences desc\n| limit 25\n| fieldsAdd Entity = coalesce(getNodeName(dt.smartscape_source.id), dt.source_entity)\n| fields Event, Entity, Layer, `Host group`, Occurrences, `Flagged frequent`, `First seen`, `Last seen`",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": true,
+          "columnTypeOverrides": [
+            {
+              "disableRemoval": false,
+              "fields": [
+                "Occurrences"
+              ],
+              "id": 1,
+              "value": "meterbar"
+            }
+          ],
+          "lineWrapIds": [
+            [
+              "Event"
+            ]
+          ]
+        },
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "single-color",
+              "comparator": "<",
+              "field": "Occurrences",
+              "type": "double",
+              "value": 10,
+              "color": "var(--dt-colors-charts-apdex-excellent-default, #2a7453)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Occurrences",
+              "type": "double",
+              "value": 10,
+              "color": "var(--dt-colors-charts-status-warning-default, #eca440)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Occurrences",
+              "type": "double",
+              "value": 50,
+              "color": "var(--dt-colors-charts-status-critical-default, #c62239)"
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Same event on the same entity 3+ times — candidates for tuning or suppression."
+    },
+    "31": {
+      "type": "data",
+      "title": "Top 10 noisy entities",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| filter event.category != \"INFO\"\n| summarize Events = count(), by:{dt.smartscape_source.id, dt.source_entity}\n| sort Events desc\n| limit 10\n| fieldsAdd Entity = coalesce(getNodeName(dt.smartscape_source.id), dt.source_entity)\n| fields Entity, Events",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": true
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Events"
+              ],
+              "override": {
+                "color": {
+                  "Default": "var(--dt-colors-charts-status-warning-default, #eca440)"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Non-INFO events per source entity."
+    },
+    "32": {
+      "type": "data",
+      "title": "Linked vs unlinked alerts",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| filter event.category != \"INFO\"\n| lookup [fetch dt.davis.problems | expand eid = dt.davis.event_ids | dedup eid | fields eid, display_id], sourceField:event.id, lookupField:eid, prefix:\"p.\"\n| summarize `Linked to a problem` = countIf(isNotNull(p.display_id)),\n    `Not linked` = countIf(isNull(p.display_id)),\n    by:{Category = event.category}",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": false
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Linked to a problem"
+              ],
+              "override": {
+                "color": {
+                  "Default": "var(--dt-colors-charts-apdex-excellent-default, #2a7453)"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Not linked"
+              ],
+              "override": {
+                "color": {
+                  "Default": "var(--dt-colors-charts-status-critical-default, #c62239)"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Non-INFO alerts that ended up in a problem vs ones that didn't."
+    },
+    "33": {
+      "type": "data",
+      "title": "Long running alerts",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| filter event.category != \"INFO\"\n| fieldsAdd dur = coalesce(event.end, now()) - event.start\n| summarize Events = count(), `Avg duration` = avg(dur), `Max duration` = max(dur),\n    `Still active` = countIf(event.status == \"ACTIVE\"),\n    by:{Event = event.name, Layer = layer}\n| sort `Avg duration` desc\n| limit 15",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": true,
+          "columnTypeOverrides": [
+            {
+              "disableRemoval": false,
+              "fields": [
+                "Events"
+              ],
+              "id": 1,
+              "value": "meterbar"
+            }
+          ],
+          "lineWrapIds": [
+            [
+              "Event"
+            ]
+          ]
+        },
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Still active",
+              "type": "double",
+              "value": 1,
+              "color": "var(--dt-colors-charts-status-warning-default, #eca440)"
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "How long alerts stay open, by event type."
+    },
+    "34": {
+      "type": "markdown",
+      "content": "## ⚠️ Problems"
+    },
+    "35": {
+      "type": "data",
+      "title": "Problem trend",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| lookup [fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate)\n    | expand linkId = dt.davis.event_ids\n    | fields linkId, event.id, display_id, event.name, event.category, event.status, event.start, event.end,\n        resolved_problem_duration, root_cause_entity_name, affected_entity_ids, entity_tags, dt.davis.affected_users_count],\n    sourceField:event.id, lookupField:linkId, prefix:\"p.\"\n| filter isNotNull(p.event.id)\n| dedup p.event.id\n| filter in(p.event.category, array($Category))\n| fields event.id = p.event.id, display_id = p.display_id, event.name = p.event.name,\n    event.category = p.event.category, event.status = p.event.status,\n    event.start = p.event.start, event.end = p.event.end,\n    resolved_problem_duration = p.resolved_problem_duration,\n    root_cause_entity_name = p.root_cause_entity_name,\n    affected_entity_ids = p.affected_entity_ids, entity_tags = p.entity_tags,\n    affected_users = p.dt.davis.affected_users_count\n| makeTimeseries {\n    Availability = countIf(event.category == \"AVAILABILITY\"),\n    Error = countIf(event.category == \"ERROR\"),\n    Slowdown = countIf(event.category == \"SLOWDOWN\"),\n    Resource = countIf(event.category == \"RESOURCE_CONTENTION\"),\n    Warning = countIf(event.category == \"WARNING\"),\n    `Custom alert` = countIf(event.category == \"CUSTOM_ALERT\"),\n    Info = countIf(event.category == \"INFO\"),\n    Other = countIf(not(in(event.category, array(\"AVAILABILITY\", \"ERROR\", \"SLOWDOWN\", \"RESOURCE_CONTENTION\", \"WARNING\", \"CUSTOM_ALERT\", \"INFO\"))))\n  }, time:event.start",
+      "visualization": "barChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": false
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Availability"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#c62239"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Error"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#e8700f"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Slowdown"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#f5c400"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Resource"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#a14fd4"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Warning"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#d9a33a"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Custom alert"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#1f9ad6"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Info"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#7b8494"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Other"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#4a5160"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Problems by start time, stacked by category."
+    },
+    "36": {
+      "type": "data",
+      "title": "MTTR by category",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| lookup [fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate)\n    | expand linkId = dt.davis.event_ids\n    | fields linkId, event.id, display_id, event.name, event.category, event.status, event.start, event.end,\n        resolved_problem_duration, root_cause_entity_name, affected_entity_ids, entity_tags, dt.davis.affected_users_count],\n    sourceField:event.id, lookupField:linkId, prefix:\"p.\"\n| filter isNotNull(p.event.id)\n| dedup p.event.id\n| filter in(p.event.category, array($Category))\n| fields event.id = p.event.id, display_id = p.display_id, event.name = p.event.name,\n    event.category = p.event.category, event.status = p.event.status,\n    event.start = p.event.start, event.end = p.event.end,\n    resolved_problem_duration = p.resolved_problem_duration,\n    root_cause_entity_name = p.root_cause_entity_name,\n    affected_entity_ids = p.affected_entity_ids, entity_tags = p.entity_tags,\n    affected_users = p.dt.davis.affected_users_count\n| filter event.status == \"CLOSED\"\n| fieldsAdd ttr = coalesce(resolved_problem_duration, event.end - event.start)\n| summarize `Avg time to resolve` = avg(ttr), `Longest` = max(ttr), by:{Category = event.category}\n| sort `Avg time to resolve` desc",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": false
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Avg time to resolve"
+              ],
+              "override": {
+                "color": {
+                  "Default": "var(--dt-colors-charts-categorical-color-01-default, #134fc9)"
+                }
+              }
+            },
+            {
+              "seriesId": [
+                "Longest"
+              ],
+              "override": {
+                "color": {
+                  "Default": "#7b8494"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Closed problems only."
+    },
+    "37": {
+      "type": "data",
+      "title": "Top root causes",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| lookup [fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate)\n    | expand linkId = dt.davis.event_ids\n    | fields linkId, event.id, display_id, event.name, event.category, event.status, event.start, event.end,\n        resolved_problem_duration, root_cause_entity_name, affected_entity_ids, entity_tags, dt.davis.affected_users_count],\n    sourceField:event.id, lookupField:linkId, prefix:\"p.\"\n| filter isNotNull(p.event.id)\n| dedup p.event.id\n| filter in(p.event.category, array($Category))\n| fields event.id = p.event.id, display_id = p.display_id, event.name = p.event.name,\n    event.category = p.event.category, event.status = p.event.status,\n    event.start = p.event.start, event.end = p.event.end,\n    resolved_problem_duration = p.resolved_problem_duration,\n    root_cause_entity_name = p.root_cause_entity_name,\n    affected_entity_ids = p.affected_entity_ids, entity_tags = p.entity_tags,\n    affected_users = p.dt.davis.affected_users_count\n| filter isNotNull(root_cause_entity_name)\n| fieldsAdd ttr = coalesce(resolved_problem_duration, coalesce(event.end, now()) - event.start)\n| summarize Problems = count(), `Avg duration` = avg(ttr), `Last seen` = max(event.start),\n    Categories = collectDistinct(event.category),\n    by:{`Root cause` = root_cause_entity_name}\n| sort Problems desc\n| limit 20",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": true,
+          "columnTypeOverrides": [
+            {
+              "disableRemoval": false,
+              "fields": [
+                "Problems"
+              ],
+              "id": 1,
+              "value": "meterbar"
+            }
+          ],
+          "lineWrapIds": [
+            [
+              "Root cause"
+            ]
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Entities Davis named as root cause most often."
+    },
+    "38": {
+      "type": "data",
+      "title": "Problems by host group",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| lookup [fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate)\n    | expand linkId = dt.davis.event_ids\n    | fields linkId, event.id, display_id, event.name, event.category, event.status, event.start, event.end,\n        resolved_problem_duration, root_cause_entity_name, affected_entity_ids, entity_tags, dt.davis.affected_users_count],\n    sourceField:event.id, lookupField:linkId, prefix:\"p.\"\n| filter isNotNull(p.event.id)\n| dedup p.event.id\n| filter in(p.event.category, array($Category))\n| fields event.id = p.event.id, display_id = p.display_id, event.name = p.event.name,\n    event.category = p.event.category, event.status = p.event.status,\n    event.start = p.event.start, event.end = p.event.end,\n    resolved_problem_duration = p.resolved_problem_duration,\n    root_cause_entity_name = p.root_cause_entity_name,\n    affected_entity_ids = p.affected_entity_ids, entity_tags = p.entity_tags,\n    affected_users = p.dt.davis.affected_users_count\n| expand eid = affected_entity_ids\n| filter startsWith(eid, \"HOST-\")\n| lookup [fetch dt.entity.host | fields id, hostGroupName], sourceField:eid, lookupField:id, prefix:\"ah.\"\n| fieldsAdd affectedGroup = coalesce(ah.hostGroupName, \"(no host group)\")\n| summarize Problems = countDistinct(event.id), by:{`Host group` = affectedGroup}\n| sort Problems desc\n| limit 10",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": true
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Problems"
+              ],
+              "override": {
+                "color": {
+                  "Default": "var(--dt-colors-charts-status-critical-default, #c62239)"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Problems with an affected host, grouped by that host's group."
+    },
+    "39": {
+      "type": "data",
+      "title": "Open problems",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| lookup [fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate)\n    | expand linkId = dt.davis.event_ids\n    | fields linkId, event.id, display_id, event.name, event.category, event.status, event.start, event.end,\n        resolved_problem_duration, root_cause_entity_name, affected_entity_ids, entity_tags, dt.davis.affected_users_count],\n    sourceField:event.id, lookupField:linkId, prefix:\"p.\"\n| filter isNotNull(p.event.id)\n| dedup p.event.id\n| filter in(p.event.category, array($Category))\n| fields event.id = p.event.id, display_id = p.display_id, event.name = p.event.name,\n    event.category = p.event.category, event.status = p.event.status,\n    event.start = p.event.start, event.end = p.event.end,\n    resolved_problem_duration = p.resolved_problem_duration,\n    root_cause_entity_name = p.root_cause_entity_name,\n    affected_entity_ids = p.affected_entity_ids, entity_tags = p.entity_tags,\n    affected_users = p.dt.davis.affected_users_count\n| filter event.status == \"ACTIVE\"\n| fields Problem = display_id, Title = event.name, Category = event.category,\n    `Root cause` = root_cause_entity_name, `Affected entities` = arraySize(affected_entity_ids),\n    `Affected users` = affected_users, Started = event.start, `Open for` = now() - event.start\n| sort Started desc",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": true,
+          "lineWrapIds": [
+            [
+              "Title"
+            ]
+          ]
+        },
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#c62239"
+              },
+              "field": "Category",
+              "value": "AVAILABILITY",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#e8700f"
+              },
+              "field": "Category",
+              "value": "ERROR",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#f5c400"
+              },
+              "field": "Category",
+              "value": "SLOWDOWN",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#a14fd4"
+              },
+              "field": "Category",
+              "value": "RESOURCE_CONTENTION",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#d9a33a"
+              },
+              "field": "Category",
+              "value": "WARNING",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#1f9ad6"
+              },
+              "field": "Category",
+              "value": "CUSTOM_ALERT",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#7b8494"
+              },
+              "field": "Category",
+              "value": "INFO",
+              "comparator": "=",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Problems still open, newest first."
+    },
+    "40": {
+      "type": "markdown",
+      "content": "## 🔄 Changes"
+    },
+    "41": {
+      "type": "data",
+      "title": "Change events",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| filter event.category == \"INFO\"\n| makeTimeseries Events = count(), by:{event.type}, time:event.start",
+      "visualization": "barChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": false
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          }
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Deployments, config changes and other INFO events."
+    },
+    "42": {
+      "type": "data",
+      "title": "Problems after a change",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| lookup [fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate)\n    | expand linkId = dt.davis.event_ids\n    | fields linkId, event.id, display_id, event.name, event.category, event.status, event.start, event.end,\n        resolved_problem_duration, root_cause_entity_name, affected_entity_ids, entity_tags, dt.davis.affected_users_count],\n    sourceField:event.id, lookupField:linkId, prefix:\"p.\"\n| filter isNotNull(p.event.id)\n| dedup p.event.id\n| filter in(p.event.category, array($Category))\n| fields event.id = p.event.id, display_id = p.display_id, event.name = p.event.name,\n    event.category = p.event.category, event.status = p.event.status,\n    event.start = p.event.start, event.end = p.event.end,\n    resolved_problem_duration = p.resolved_problem_duration,\n    root_cause_entity_name = p.root_cause_entity_name,\n    affected_entity_ids = p.affected_entity_ids, entity_tags = p.entity_tags,\n    affected_users = p.dt.davis.affected_users_count\n| expand eid = affected_entity_ids\n| join [fetch dt.davis.events\n    | filter event.category == \"INFO\"\n    | fields chgEntity = dt.source_entity, chgName = event.name, chgStart = event.start],\n  on:{left[eid] == right[chgEntity]}\n| filter right.chgStart <= event.start and right.chgStart >= event.start - 1h\n| summarize Changes = count(), `Change events` = collectDistinct(right.chgName),\n    by:{Problem = display_id, Title = event.name, Category = event.category, Started = event.start}\n| sort Started desc\n| limit 50",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": true,
+          "lineWrapIds": [
+            [
+              "Title"
+            ],
+            [
+              "Change events"
+            ]
+          ]
+        },
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#c62239"
+              },
+              "field": "Category",
+              "value": "AVAILABILITY",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#e8700f"
+              },
+              "field": "Category",
+              "value": "ERROR",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#f5c400"
+              },
+              "field": "Category",
+              "value": "SLOWDOWN",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#a14fd4"
+              },
+              "field": "Category",
+              "value": "RESOURCE_CONTENTION",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#d9a33a"
+              },
+              "field": "Category",
+              "value": "WARNING",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#1f9ad6"
+              },
+              "field": "Category",
+              "value": "CUSTOM_ALERT",
+              "comparator": "=",
+              "type": "string"
+            },
+            {
+              "colorMode": "custom-color",
+              "customColor": {
+                "Default": "#7b8494"
+              },
+              "field": "Category",
+              "value": "INFO",
+              "comparator": "=",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "INFO event on an affected entity up to 1 h before the problem started."
+    },
+    "43": {
+      "type": "markdown",
+      "content": "## 🏷️ Tagging hygiene"
+    },
+    "44": {
+      "type": "data",
+      "title": "Top 10 tags",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| expand Tag = entity_tags\n| summarize Events = count(), by:{Tag}\n| sort Events desc\n| limit 10",
+      "visualization": "categoricalBarChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "chartSettings": {
+          "legend": {
+            "position": "bottom",
+            "hidden": true
+          },
+          "gapPolicy": "connect",
+          "tooltip": {
+            "variant": "shared"
+          },
+          "seriesOverrides": [
+            {
+              "seriesId": [
+                "Events"
+              ],
+              "override": {
+                "color": {
+                  "Default": "var(--dt-colors-charts-categorical-color-01-default, #134fc9)"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      }
+    },
+    "45": {
+      "type": "data",
+      "title": "Untagged events",
+      "query": "fetch dt.davis.events\n| lookup [fetch dt.entity.process_group_instance | fields id, pgiHost = belongs_to[dt.entity.host]], sourceField:dt.entity.process_group_instance, lookupField:id, prefix:\"pgi.\"\n| fieldsAdd hostId = coalesce(dt.entity.host, pgi.pgiHost)\n| lookup [fetch dt.entity.host | fields id, hostGroupName, cloudType], sourceField:hostId, lookupField:id, prefix:\"host.\"\n| fieldsAdd hostGroup = coalesce(dt.host_group.id, host.hostGroupName, \"(no host group)\"),\n    cloudRaw = coalesce(if(isNotNull(aws.account.id), \"AWS\"), if(isNotNull(azure.subscription), \"AZURE\"), if(isNotNull(gcp.project.id), \"GCP\"), host.cloudType),\n    account = coalesce(aws.account.id, azure.subscription, gcp.project.id, \"(none)\"),\n    srcType = lower(coalesce(dt.smartscape_source.type, dt.source_entity.type, \"unknown\"))\n| fieldsAdd cloud = coalesce(if(cloudRaw == \"EC2\", \"AWS\", else: if(cloudRaw == \"GOOGLE_CLOUD_PLATFORM\", \"GCP\", else: cloudRaw)), \"ON-PREM / OTHER\"),\n    layer = coalesce(\n      if(contains(srcType, \"synthetic\") or contains(srcType, \"monitor\") or contains(srcType, \"http_check\"), \"Synthetic\"),\n      if(startsWith(srcType, \"k8s\") or startsWith(srcType, \"kubernetes\") or startsWith(srcType, \"cloud_application\"), \"Kubernetes\"),\n      if(startsWith(srcType, \"cloud:\") or startsWith(srcType, \"aws\") or startsWith(srcType, \"azure\") or startsWith(srcType, \"gcp\") or startsWith(srcType, \"custom_device\"), \"Cloud & custom devices\"),\n      if(contains(srcType, \"frontend\") or contains(srcType, \"application\"), \"Frontend (RUM)\"),\n      if(startsWith(srcType, \"service\"), \"Service\"),\n      if(startsWith(srcType, \"process\"), \"Process\"),\n      if(startsWith(srcType, \"host\") or startsWith(srcType, \"container\"), \"Host / container\"),\n      \"Other\")\n| filter in(event.category, array($Category))\n| filter in(layer, array($Layer))\n| filter in(hostGroup, array($HostGroup))\n| filter in(cloud, array($Cloud))\n| filter in(account, array($Account))\n| filter contains(coalesce(arrayToString(entity_tags, delimiter:\"|\"), \"\"), $Tag, caseSensitive:false)\n| summarize Events = count(),\n    Untagged = countIf(isNull(entity_tags) or arraySize(entity_tags) == 0),\n    by:{Layer = layer, `Host group` = hostGroup}\n| fieldsAdd `Untagged %` = round(100.0 * Untagged / Events, decimals:1)\n| sort Untagged desc",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false,
+        "table": {
+          "hideColumnsForLargeResults": false,
+          "linewrapEnabled": false,
+          "columnTypeOverrides": [
+            {
+              "disableRemoval": false,
+              "fields": [
+                "Untagged %"
+              ],
+              "id": 1,
+              "value": "meterbar"
+            }
+          ]
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "Untagged %",
+            "unitCategory": "percentage",
+            "baseUnit": "percent",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1
+          }
+        ],
+        "coloring": {
+          "colorRules": [
+            {
+              "colorMode": "single-color",
+              "comparator": "<",
+              "field": "Untagged %",
+              "type": "double",
+              "value": 25,
+              "color": "var(--dt-colors-charts-apdex-excellent-default, #2a7453)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Untagged %",
+              "type": "double",
+              "value": 25,
+              "color": "var(--dt-colors-charts-status-warning-default, #eca440)"
+            },
+            {
+              "colorMode": "single-color",
+              "comparator": "≥",
+              "field": "Untagged %",
+              "type": "double",
+              "value": 50,
+              "color": "var(--dt-colors-charts-status-critical-default, #c62239)"
+            }
+          ]
+        }
+      },
+      "querySettings": {
+        "defaultSamplingRatio": 10,
+        "defaultScanLimitGbytes": 500,
+        "enableSampling": false,
+        "maxResultMegaBytes": 1,
+        "maxResultRecords": 1000
+      },
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "description": "Events with no entity tags. Amber ≥ 25%, red ≥ 50%."
+    }
+  },
+  "layouts": {
+    "1": {
+      "x": 0,
+      "y": 0,
+      "w": 15,
+      "h": 4
+    },
+    "2": {
+      "x": 15,
+      "y": 0,
+      "w": 9,
+      "h": 4
+    },
+    "3": {
+      "x": 0,
+      "y": 4,
+      "w": 4,
+      "h": 3
+    },
+    "4": {
+      "x": 4,
+      "y": 4,
+      "w": 4,
+      "h": 3
+    },
+    "5": {
+      "x": 8,
+      "y": 4,
+      "w": 4,
+      "h": 3
+    },
+    "6": {
+      "x": 12,
+      "y": 4,
+      "w": 4,
+      "h": 3
+    },
+    "7": {
+      "x": 16,
+      "y": 4,
+      "w": 4,
+      "h": 3
+    },
+    "8": {
+      "x": 20,
+      "y": 4,
+      "w": 4,
+      "h": 3
+    },
+    "9": {
+      "x": 0,
+      "y": 7,
+      "w": 24,
+      "h": 1
+    },
+    "10": {
+      "x": 0,
+      "y": 8,
+      "w": 16,
+      "h": 6
+    },
+    "11": {
+      "x": 16,
+      "y": 8,
+      "w": 8,
+      "h": 6
+    },
+    "12": {
+      "x": 0,
+      "y": 14,
+      "w": 12,
+      "h": 7
+    },
+    "13": {
+      "x": 12,
+      "y": 14,
+      "w": 12,
+      "h": 7
+    },
+    "14": {
+      "x": 0,
+      "y": 21,
+      "w": 24,
+      "h": 7
+    },
+    "15": {
+      "x": 0,
+      "y": 28,
+      "w": 24,
+      "h": 1
+    },
+    "16": {
+      "x": 0,
+      "y": 29,
+      "w": 12,
+      "h": 7
+    },
+    "17": {
+      "x": 12,
+      "y": 29,
+      "w": 12,
+      "h": 7
+    },
+    "18": {
+      "x": 0,
+      "y": 36,
+      "w": 12,
+      "h": 8
+    },
+    "19": {
+      "x": 12,
+      "y": 36,
+      "w": 12,
+      "h": 8
+    },
+    "20": {
+      "x": 0,
+      "y": 44,
+      "w": 24,
+      "h": 7
+    },
+    "21": {
+      "x": 0,
+      "y": 51,
+      "w": 24,
+      "h": 1
+    },
+    "22": {
+      "x": 0,
+      "y": 52,
+      "w": 12,
+      "h": 8
+    },
+    "23": {
+      "x": 12,
+      "y": 52,
+      "w": 12,
+      "h": 8
+    },
+    "24": {
+      "x": 0,
+      "y": 60,
+      "w": 24,
+      "h": 1
+    },
+    "25": {
+      "x": 0,
+      "y": 61,
+      "w": 12,
+      "h": 8
+    },
+    "26": {
+      "x": 12,
+      "y": 61,
+      "w": 6,
+      "h": 8
+    },
+    "27": {
+      "x": 18,
+      "y": 61,
+      "w": 6,
+      "h": 8
+    },
+    "28": {
+      "x": 0,
+      "y": 69,
+      "w": 24,
+      "h": 7
+    },
+    "29": {
+      "x": 0,
+      "y": 76,
+      "w": 24,
+      "h": 1
+    },
+    "30": {
+      "x": 0,
+      "y": 77,
+      "w": 14,
+      "h": 8
+    },
+    "31": {
+      "x": 14,
+      "y": 77,
+      "w": 10,
+      "h": 8
+    },
+    "32": {
+      "x": 0,
+      "y": 85,
+      "w": 10,
+      "h": 7
+    },
+    "33": {
+      "x": 10,
+      "y": 85,
+      "w": 14,
+      "h": 7
+    },
+    "34": {
+      "x": 0,
+      "y": 92,
+      "w": 24,
+      "h": 1
+    },
+    "35": {
+      "x": 0,
+      "y": 93,
+      "w": 12,
+      "h": 7
+    },
+    "36": {
+      "x": 12,
+      "y": 93,
+      "w": 12,
+      "h": 7
+    },
+    "37": {
+      "x": 0,
+      "y": 100,
+      "w": 12,
+      "h": 8
+    },
+    "38": {
+      "x": 12,
+      "y": 100,
+      "w": 12,
+      "h": 8
+    },
+    "39": {
+      "x": 0,
+      "y": 108,
+      "w": 24,
+      "h": 7
+    },
+    "40": {
+      "x": 0,
+      "y": 115,
+      "w": 24,
+      "h": 1
+    },
+    "41": {
+      "x": 0,
+      "y": 116,
+      "w": 12,
+      "h": 7
+    },
+    "42": {
+      "x": 12,
+      "y": 116,
+      "w": 12,
+      "h": 7
+    },
+    "43": {
+      "x": 0,
+      "y": 123,
+      "w": 24,
+      "h": 1
+    },
+    "44": {
+      "x": 0,
+      "y": 124,
+      "w": 12,
+      "h": 8
+    },
+    "45": {
+      "x": 12,
+      "y": 124,
+      "w": 12,
+      "h": 8
+    }
+  },
+  "importedWithCode": false,
+  "annotations": [],
+  "settings": {
+    "defaultTimeframe": {
+      "enabled": true,
+      "value": {
+        "from": "now()-7d",
+        "to": "now()"
+      }
+    }
+  }
+}
